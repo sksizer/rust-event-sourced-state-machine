@@ -32,5 +32,24 @@ pub fn execution_state(execution_state: &ExecutionState) {
         };
         let kind_str = format!("{:?}", step.kind());
         println!("  {} Step {} [{}] ({}): {}", icon, i + 1, step.id().dimmed(), kind_str.dimmed(), status_label);
+
+        // Show input if present
+        if let Some(input) = &step.core().input {
+            println!("      {} {}", "input:".dimmed(), input);
+        }
+
+        // Show output or failure details
+        match step {
+            StepState::Completed { output: Some(output), .. } => {
+                println!("      {} {}", "output:".dimmed(), output.green());
+            }
+            StepState::Failed { failure: Some(failure), .. } => {
+                println!("      {} {}", "failure:".dimmed(), failure.red());
+            }
+            StepState::Error { failure: Some(failure), .. } => {
+                println!("      {} {}", "error:".dimmed(), failure.yellow());
+            }
+            _ => {}
+        }
     }
 }

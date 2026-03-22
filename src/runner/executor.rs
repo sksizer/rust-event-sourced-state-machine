@@ -2,7 +2,6 @@ use log::trace;
 use crate::runner::registry::Registry;
 use crate::steps::types::{StepEvent, StepKind, StepState};
 
-
 /// Knows how to call a step function. Is at the edge of side effects
 pub fn executor(registry:&Registry , step: &StepState) -> StepEvent {
     trace!("executor - step: {:?}", step);
@@ -10,7 +9,16 @@ pub fn executor(registry:&Registry , step: &StepState) -> StepEvent {
     let kind = step.kind();
     match kind {
         StepKind::Sync(kind) => {
-            StepEvent::Complete(id, Some("test passed".into()))
+            let step_mod = registry.get_sync_module(kind);
+            match step_mod {
+                Some(s) => {
+                    let r = (s.handler)();
+                    StepEvent::Complete(id, Some(r))
+                }
+                None => {
+                    StepEvent::Error(id, Some("No step handler registered".to_string()))
+                }
+            }
         }
     }
 }
