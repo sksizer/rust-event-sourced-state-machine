@@ -1,0 +1,10 @@
+[package]
+name = "rust-event-sourced-state-machine"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+thiserror = "2.0.18"
+log = "0.4.29"
+colored = "3"

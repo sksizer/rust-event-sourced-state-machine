@@ -1,0 +1,153 @@
+
+use log::error;
+use thiserror::Error;
+
+use crate::steps::types::StepState;
+
+pub struct ExecutionState {
+    // todo - make this private to enforce valid transitions
+    pub step_states: Vec<StepState>,
+}
+
+impl ExecutionState {
+    pub fn status(&self) -> ExecutionStatus {
+        get_execution_status(self)
+    }
+}
+
+/////// IMPLEMENTATIONS
+
+#[derive(Error, Debug)]
+pub enum ExecutionStateError {
+    #[error("A step with a duplicate id was appended")]
+    DuplicateStepIdError,
+
+    #[error("Invalid step transition")]
+    InvalidStepTransition,
+
+    #[error("Invalid step transition on closed step")]
+    InvalidStepTransitionOnClosedStep,
+}
+
+// TODO: Duplicate check only compares against the *last* step, not all steps.
+//  Adding steps 1, 2, 1 would pass. If global uniqueness is intended,
+//  check all step_states (or use a HashSet of ids alongside the Vec).
+pub fn append_step_state(
+    mut execution_state: ExecutionState,
+    step_state: StepState,
+) -> Result<ExecutionState, ExecutionStateError> {
+    if !execution_state.step_states.is_empty() {
+        let prior_id = execution_state.step_states[execution_state.step_states.len() - 1]
+            .id()
+            .to_string();
+        if prior_id == step_state.id() {
+            return Err(ExecutionStateError::DuplicateStepIdError);
+        }
+    }
+    execution_state.step_states.push(step_state);
+    Ok(execution_state)
+}
+
+// TODO: This replaces the last step unconditionally without verifying the id matches.
+//  An event for step "2" would silently overwrite step "1" if "1" is last.
+//  Consider verifying step_state.id matches the last step's id.
+pub fn update_step_state(
+    mut execution_state: ExecutionState,
+    step_state: StepState,
+) -> Result<ExecutionState, ExecutionStateError> {
+    if execution_state.step_states.is_empty() {
+        error!("Attempt to transition a step on an empty execution_state step list");
+        return Err(ExecutionStateError::InvalidStepTransition);
+    }
+
+    if execution_state.step_states[execution_state.step_states.len() - 1].is_closed() {
+        return Err(ExecutionStateError::InvalidStepTransitionOnClosedStep);
+    }
+
+    execution_state.step_states.pop();
+    execution_state.step_states.push(step_state);
+    Ok(execution_state)
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ExecutionStatus {
+    New, // No steps established or any other state
+    Error,
+    Failed,
+    Running,
+    Finished,
+}
+
+fn get_execution_status(execution_state: &ExecutionState) -> ExecutionStatus {
+    if execution_state.step_states.is_empty() {
+        return ExecutionStatus::New;
+    }
+    if execution_state
+        .step_states
+        .iter()
+        .all(|s| matches!(s, StepState::Completed { .. }))
+    {
+        return ExecutionStatus::Finished;
+    }
+
+    if execution_state
+        .step_states
+        .iter()
+        .any(|s| matches!(s, StepState::Failed { .. }))
+    {
+        return ExecutionStatus::Failed;
+    }
+
+    if execution_state
+        .step_states
+        .iter()
+        .any(|s| matches!(s, StepState::Error { .. }))
+    {
+        return ExecutionStatus::Error;
+    }
+
+    ExecutionStatus::Running
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::steps::types::{StepCore, StepKind};
+
+    fn test_core(id: &str) -> StepCore {
+        StepCore { id: id.to_string(), kind: StepKind::Sync("alpha".to_string()), input: None }
+    }
+
+    #[test]
+    fn test_execution_status() {
+        let execution_state = ExecutionState {
+            step_states: vec![],
+        };
+        assert_eq!(execution_state.status(), ExecutionStatus::New);
+    }
+
+    #[test]
+    fn append_step_with_duplicate_id_error() {
+        let execution_state = ExecutionState {
+            step_states: vec![StepState::Running(test_core("1"))],
+        };
+        let result = append_step_state(
+            execution_state,
+            StepState::Ready(test_core("1")),
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn updating_finished_step_error() {
+        let execution_state = ExecutionState {
+            step_states: vec![StepState::Completed { core: test_core("1"), output: None }],
+        };
+
+        let result = update_step_state(
+            execution_state,
+            StepState::Running(test_core("1")),
+        );
+        assert!(result.is_err());
+    }
+}
