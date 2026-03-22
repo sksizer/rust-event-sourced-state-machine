@@ -5,11 +5,12 @@ mod execution_state;
 mod steps;
 mod view;
 mod runner;
+mod fixtures;
 
 use runner::Registry;
 
 fn main() {
-    let registry = Registry::new(Some(runner::test_step_modules()));
+    let registry = Registry::new(Some(fixtures::test_step_modules()));
 
     let event_stream: EventStream = vec![
         StepEvent::Add("1".to_string(), StepKind::Sync("1".to_string())),
