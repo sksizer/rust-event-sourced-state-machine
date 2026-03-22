@@ -1,6 +1,7 @@
 //! Creates a realized execution state from an event stream
+
+use crate::api::events::{EventStream, StepEvent};
 use crate::execution_state::ExecutionState;
-use crate::steps::types::{EventStream, StepEvent};
 use crate::runner::reduce::reduce;
 
 /// helper function to return a single execution state over a series of events
@@ -13,9 +14,10 @@ pub fn restore(event_stream: EventStream) -> ExecutionState {
 
 #[cfg(test)]
 mod test {
+    use crate::api::steps::StepKind;
     use super::*;
     use crate::execution_state::ExecutionStatus;
-    use crate::steps::types::{StepState, StepKind};
+    use crate::api::steps::StepState;
 
     #[test]
     fn test_adding_a_single_step() {

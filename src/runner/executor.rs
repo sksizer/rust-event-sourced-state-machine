@@ -1,6 +1,8 @@
 use log::trace;
+use crate::api::events::StepEvent;
+use crate::api::steps::StepKind;
 use crate::runner::registry::Registry;
-use crate::steps::types::{StepEvent, StepKind, StepState};
+use crate::api::steps::StepState;
 
 /// Knows how to call a step function. Is at the edge of side effects
 pub fn executor(registry:&Registry , step: &StepState) -> StepEvent {

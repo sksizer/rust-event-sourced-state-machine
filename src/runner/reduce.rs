@@ -1,7 +1,7 @@
+use crate::api::events::StepEvent;
+use crate::api::steps::{StepCore, StepState};
 use crate::execution_state;
 use crate::execution_state::ExecutionState;
-use crate::steps::types::{StepCore, StepEvent, StepState};
-
 /// Takes prior state + an event and returns an updated state
 pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> ExecutionState {
     match step_event {

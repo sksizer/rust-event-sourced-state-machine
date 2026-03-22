@@ -2,7 +2,7 @@
 use log::error;
 use thiserror::Error;
 
-use crate::steps::types::StepState;
+use crate::api::steps::StepState;
 
 pub struct ExecutionState {
     // todo - make this private to enforce valid transitions
@@ -111,8 +111,9 @@ fn get_execution_status(execution_state: &ExecutionState) -> ExecutionStatus {
 
 #[cfg(test)]
 mod tests {
+    use crate::api::steps::StepKind;
     use super::*;
-    use crate::steps::types::{StepCore, StepKind};
+    use crate::api::steps::StepCore;
 
     fn test_core(id: &str) -> StepCore {
         StepCore { id: id.to_string(), kind: StepKind::Sync("alpha".to_string()), input: None }

@@ -1,8 +1,7 @@
 //! Stateful object that ties together processing loop with functions
 
+use crate::api::events::EventStream;
 use crate::runner::registry::Registry;
-use crate::steps::types::{EventStream};
-
 pub struct Controller {
     registry: Registry,
     event_stream: EventStream

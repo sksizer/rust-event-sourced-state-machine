@@ -1,5 +1,5 @@
 use crate::execution_state::ExecutionState;
-use crate::steps::types::StepState;
+use crate::api::steps::StepState;
 
 /// Given an execution state (and later a system state) this determines what step to take and
 /// produces an event that can be persisted
