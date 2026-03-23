@@ -1,6 +1,6 @@
 use log::{error, trace};
-use crate::api::events::StepEvent;
-use crate::api::steps::{Step, SyncStep};
+use crate::api::steps::{StepEvent, SyncStep};
+use crate::api::steps::Step;
 use crate::runner::registry::Registry;
 
 /// Knows how to call a step function. Is at the edge of side effects

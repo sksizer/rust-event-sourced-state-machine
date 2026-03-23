@@ -1,5 +1,5 @@
 use serde_json::json;
-use api::events::{EventStream, StepEvent};
+use api::events::EventStream;
 
 mod execution_state;
 mod steps;
@@ -10,6 +10,7 @@ mod api;
 mod r#impl;
 
 use runner::Registry;
+use crate::api::steps::StepEvent;
 
 fn main() {
     let registry = Registry::new(Some(fixtures::get_test_step_modules()), None);
@@ -17,7 +18,7 @@ fn main() {
     let event_stream: EventStream = vec![
         StepEvent::AddSync("1".to_string(), "echo".to_string(), Some(json!("echo"))),
     ];
-    let mut execution_state = runner::restore(event_stream);
+    let mut execution_state = runner::restore(&event_stream);
     println!("Execution Status: {:?}", execution_state.status());
     view::summarize::execution_state(&execution_state);
 
@@ -33,4 +34,10 @@ fn main() {
     execution_state = runner::reduce(execution_state, &result_event);
     println!("Execution Status: {:?}", execution_state.status());
     view::summarize::execution_state(&execution_state);
+
+    example_one();
+}
+
+fn example_one() {
+
 }

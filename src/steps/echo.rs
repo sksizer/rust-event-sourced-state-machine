@@ -1,11 +1,11 @@
 //! This is a test step module that basically just passes the input through to output
-use crate::api::steps::SyncStepModule;
+use crate::api::steps::SyncStepHandler;
 
 static NAME: &str = "echo";
 
 // TODO - implement actual echoing for testing
-pub fn get_echo_module() -> SyncStepModule {
-    SyncStepModule {
+pub fn get_echo_module() -> SyncStepHandler {
+    SyncStepHandler {
         name: "Synchronous Echo Step".to_string(),
         id: NAME.to_string(),
         description: "Passes input to output synchronously".to_string(),

@@ -1,5 +1,5 @@
-use crate::api::events::StepEvent;
-use crate::api::steps::{AsyncStep, Step, StepCore, SyncStep};
+use crate::api::steps::{AsyncStep, StepCore, StepEvent, SyncStep};
+use crate::api::steps::Step;
 use crate::execution_state;
 use crate::execution_state::ExecutionState;
 

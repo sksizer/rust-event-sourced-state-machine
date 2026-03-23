@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use crate::api::events::{EventSource, EventStream, StepEvent};
+use crate::api::events::{EventSource, EventStream};
+use crate::api::steps::StepEvent;
 
 pub struct MemoryEventStore {
     events: HashMap<String, EventStream>,

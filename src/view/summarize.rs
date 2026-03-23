@@ -1,7 +1,8 @@
 use colored::Colorize;
 
 use crate::execution_state::{ExecutionState, ExecutionStatus};
-use crate::api::steps::{AsyncStep, Step, SyncStep};
+use crate::api::steps::{Step, AsyncStep, SyncStep};
+
 
 pub fn execution_state(execution_state: &ExecutionState) {
     let status = execution_state.status();

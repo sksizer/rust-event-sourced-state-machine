@@ -1,20 +1,10 @@
-use serde_json::Value;
-mod types;
-pub use types::{StepCore, SyncStep, AsyncStep, Step, StepKind};
-pub type StepId = String;
+mod core;
+mod step_handlers;
+mod async_step;
+mod step_events;
+mod step_model;
 
-pub struct SyncStepModule {
-    /// Name for the step
-    pub name: String,
-    pub id: String,
-    pub description: String,
-    pub handler: fn(Option<Value>) -> Option<Value>,
-}
-
-pub struct AsyncStepModule {
-    /// Name for the step
-    pub name: String,
-    pub id: String,
-    pub description: String,
-    pub handler: fn(Option<Value>) -> String,
-}
+pub use step_handlers::{AsyncStepHandler, SyncStepHandler};
+pub use core::{StepCore, StepId, StepKind};
+pub use step_model::{Step, AsyncStep, SyncStep};
+pub use step_events::StepEvent;

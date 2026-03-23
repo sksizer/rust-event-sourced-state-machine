@@ -10,6 +10,9 @@ pub struct ExecutionState {
 }
 
 impl ExecutionState {
+    pub fn new() -> ExecutionState {
+        ExecutionState { step_states: vec![] }
+    }
     pub fn status(&self) -> ExecutionStatus {
         get_execution_status(self)
     }
@@ -97,7 +100,7 @@ fn get_execution_status(execution_state: &ExecutionState) -> ExecutionStatus {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api::steps::{StepCore, SyncStep, AsyncStep};
+    use crate::api::steps::{AsyncStep, StepCore, SyncStep};
 
     fn sync_core(id: &str) -> StepCore {
         StepCore { id: id.to_string(), kind: "alpha".to_string(), input: None }
