@@ -1,3 +1,5 @@
+mod types;
+
 pub type StepId = String;
 
 #[derive(Clone, Debug)]
@@ -49,3 +51,5 @@ impl StepState {
         matches!(self, StepState::Ready(_) | StepState::Running(_))
     }
 }
+
+
