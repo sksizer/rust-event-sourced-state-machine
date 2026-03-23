@@ -1,6 +1,6 @@
 //! Creates a realized execution state from an event stream
 use crate::api::events::EventStream;
-use crate::execution_state::ExecutionState;
+use crate::api::execution::ExecutionState;
 use crate::runner::reduce::reduce;
 
 /// helper function to return a single execution state over a series of events
@@ -16,7 +16,7 @@ mod test {
     use super::*;
     use crate::api::steps::{AsyncStep, StepEvent, SyncStep};
     use crate::api::steps::Step;
-    use crate::execution_state::ExecutionStatus;
+    use crate::api::execution::ExecutionStatus;
 
     #[test]
     fn test_adding_a_single_step() {

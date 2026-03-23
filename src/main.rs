@@ -1,7 +1,6 @@
 use serde_json::json;
 use api::events::EventStream;
 
-mod execution_state;
 mod steps;
 mod view;
 mod runner;

@@ -1,36 +1,10 @@
 
 use log::error;
 use thiserror::Error;
-
+use crate::api::execution::{ExecutionState, ExecutionStateError, ExecutionStatus};
 use crate::api::steps::Step;
 
-pub struct ExecutionState {
-    // todo - make this private to enforce valid transitions
-    pub step_states: Vec<Step>,
-}
-
-impl ExecutionState {
-    pub fn new() -> ExecutionState {
-        ExecutionState { step_states: vec![] }
-    }
-    pub fn status(&self) -> ExecutionStatus {
-        get_execution_status(self)
-    }
-}
-
 /////// IMPLEMENTATIONS
-
-#[derive(Error, Debug)]
-pub enum ExecutionStateError {
-    #[error("A step with a duplicate id was appended")]
-    DuplicateStepIdError,
-
-    #[error("Invalid step transition")]
-    InvalidStepTransition,
-
-    #[error("Invalid step transition on closed step")]
-    InvalidStepTransitionOnClosedStep,
-}
 
 // TODO: Duplicate check only compares against the *last* step, not all steps.
 //  Adding steps 1, 2, 1 would pass. If global uniqueness is intended,
@@ -72,16 +46,7 @@ pub fn update_step_state(
     Ok(execution_state)
 }
 
-#[derive(Debug, PartialEq)]
-pub enum ExecutionStatus {
-    New, // No steps established or any other state
-    Error,
-    Failed,
-    Running,
-    Finished,
-}
-
-fn get_execution_status(execution_state: &ExecutionState) -> ExecutionStatus {
+pub fn get_execution_status(execution_state: &ExecutionState) -> ExecutionStatus {
     if execution_state.step_states.is_empty() {
         return ExecutionStatus::New;
     }

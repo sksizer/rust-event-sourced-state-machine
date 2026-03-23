@@ -1,7 +1,7 @@
 use crate::api::steps::{AsyncStep, StepCore, StepEvent, SyncStep};
 use crate::api::steps::Step;
-use crate::execution_state;
-use crate::execution_state::ExecutionState;
+use crate::r#impl::execution_state;
+use crate::api::execution::ExecutionState;
 
 /// Takes prior state + an event and returns an updated state
 pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> ExecutionState {

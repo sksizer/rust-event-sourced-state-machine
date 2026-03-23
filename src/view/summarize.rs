@@ -1,7 +1,6 @@
 use colored::Colorize;
-
-use crate::execution_state::{ExecutionState, ExecutionStatus};
-use crate::api::steps::{Step, AsyncStep, SyncStep};
+use crate::api::execution::{ExecutionState, ExecutionStatus};
+use crate::api::steps::{AsyncStep, Step, SyncStep};
 
 
 pub fn execution_state(execution_state: &ExecutionState) {
