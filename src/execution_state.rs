@@ -2,11 +2,11 @@
 use log::error;
 use thiserror::Error;
 
-use crate::api::steps::StepState;
+use crate::api::steps::Step;
 
 pub struct ExecutionState {
     // todo - make this private to enforce valid transitions
-    pub step_states: Vec<StepState>,
+    pub step_states: Vec<Step>,
 }
 
 impl ExecutionState {
@@ -34,17 +34,17 @@ pub enum ExecutionStateError {
 //  check all step_states (or use a HashSet of ids alongside the Vec).
 pub fn append_step_state(
     mut execution_state: ExecutionState,
-    step_state: StepState,
+    step: Step,
 ) -> Result<ExecutionState, ExecutionStateError> {
     if !execution_state.step_states.is_empty() {
         let prior_id = execution_state.step_states[execution_state.step_states.len() - 1]
             .id()
             .to_string();
-        if prior_id == step_state.id() {
+        if prior_id == step.id() {
             return Err(ExecutionStateError::DuplicateStepIdError);
         }
     }
-    execution_state.step_states.push(step_state);
+    execution_state.step_states.push(step);
     Ok(execution_state)
 }
 
@@ -53,7 +53,7 @@ pub fn append_step_state(
 //  Consider verifying step_state.id matches the last step's id.
 pub fn update_step_state(
     mut execution_state: ExecutionState,
-    step_state: StepState,
+    step: Step,
 ) -> Result<ExecutionState, ExecutionStateError> {
     if execution_state.step_states.is_empty() {
         error!("Attempt to transition a step on an empty execution_state step list");
@@ -65,7 +65,7 @@ pub fn update_step_state(
     }
 
     execution_state.step_states.pop();
-    execution_state.step_states.push(step_state);
+    execution_state.step_states.push(step);
     Ok(execution_state)
 }
 
@@ -82,41 +82,25 @@ fn get_execution_status(execution_state: &ExecutionState) -> ExecutionStatus {
     if execution_state.step_states.is_empty() {
         return ExecutionStatus::New;
     }
-    if execution_state
-        .step_states
-        .iter()
-        .all(|s| matches!(s, StepState::Completed { .. }))
-    {
+    if execution_state.step_states.iter().all(|s| s.is_completed()) {
         return ExecutionStatus::Finished;
     }
-
-    if execution_state
-        .step_states
-        .iter()
-        .any(|s| matches!(s, StepState::Failed { .. }))
-    {
+    if execution_state.step_states.iter().any(|s| s.is_failed()) {
         return ExecutionStatus::Failed;
     }
-
-    if execution_state
-        .step_states
-        .iter()
-        .any(|s| matches!(s, StepState::Error { .. }))
-    {
+    if execution_state.step_states.iter().any(|s| s.is_error()) {
         return ExecutionStatus::Error;
     }
-
     ExecutionStatus::Running
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::api::steps::StepKind;
     use super::*;
-    use crate::api::steps::StepCore;
+    use crate::api::steps::{StepCore, SyncStep, AsyncStep};
 
-    fn test_core(id: &str) -> StepCore {
-        StepCore { id: id.to_string(), kind: StepKind::Sync("alpha".to_string()), input: None }
+    fn sync_core(id: &str) -> StepCore {
+        StepCore { id: id.to_string(), kind: "alpha".to_string(), input: None }
     }
 
     #[test]
@@ -130,11 +114,11 @@ mod tests {
     #[test]
     fn append_step_with_duplicate_id_error() {
         let execution_state = ExecutionState {
-            step_states: vec![StepState::Running(test_core("1"))],
+            step_states: vec![Step::Async(AsyncStep::Running(sync_core("1")))],
         };
         let result = append_step_state(
             execution_state,
-            StepState::Ready(test_core("1")),
+            Step::Sync(SyncStep::Ready(sync_core("1"))),
         );
         assert!(result.is_err());
     }
@@ -142,12 +126,12 @@ mod tests {
     #[test]
     fn updating_finished_step_error() {
         let execution_state = ExecutionState {
-            step_states: vec![StepState::Completed { core: test_core("1"), output: None }],
+            step_states: vec![Step::Sync(SyncStep::Completed { core: sync_core("1"), output: None })],
         };
 
         let result = update_step_state(
             execution_state,
-            StepState::Running(test_core("1")),
+            Step::Sync(SyncStep::Ready(sync_core("1"))),
         );
         assert!(result.is_err());
     }

@@ -1,7 +1,7 @@
 use colored::Colorize;
 
 use crate::execution_state::{ExecutionState, ExecutionStatus};
-use crate::api::steps::StepState;
+use crate::api::steps::{AsyncStep, Step, SyncStep};
 
 pub fn execution_state(execution_state: &ExecutionState) {
     let status = execution_state.status();
@@ -24,29 +24,33 @@ pub fn execution_state(execution_state: &ExecutionState) {
 
     for (i, step) in execution_state.step_states.iter().enumerate() {
         let (icon, status_label) = match step {
-            StepState::Ready(_) => ("○".white(), "Ready".white()),
-            StepState::Running(_) => ("●".cyan(), "Running".cyan()),
-            StepState::Completed { .. } => ("✔".green(), "Completed".green()),
-            StepState::Error { .. } => ("⚠".yellow(), "Error".yellow()),
-            StepState::Failed { .. } => ("✘".red(), "Failed".red()),
+            Step::Sync(SyncStep::Ready(_)) => ("○".white(), "Ready".white()),
+            Step::Sync(SyncStep::Completed { .. }) => ("✔".green(), "Completed".green()),
+            Step::Sync(SyncStep::Failed { .. }) => ("✘".red(), "Failed".red()),
+            Step::Sync(SyncStep::Error { .. }) => ("⚠".yellow(), "Error".yellow()),
+            Step::Async(AsyncStep::Ready(_)) => ("○".white(), "Ready".white()),
+            Step::Async(AsyncStep::Running(_)) => ("●".cyan(), "Running".cyan()),
+            Step::Async(AsyncStep::Completed { .. }) => ("✔".green(), "Completed".green()),
+            Step::Async(AsyncStep::Failed { .. }) => ("✘".red(), "Failed".red()),
+            Step::Async(AsyncStep::Error { .. }) => ("⚠".yellow(), "Error".yellow()),
         };
-        let kind_str = format!("{:?}", step.kind());
-        println!("  {} Step {} [{}] ({}): {}", icon, i + 1, step.id().dimmed(), kind_str.dimmed(), status_label);
+        println!("  {} Step {} [{}] ({}): {}", icon, i + 1, step.id().dimmed(), step.kind().dimmed(), status_label);
 
-        // Show input if present
         if let Some(input) = &step.core().input {
             println!("      {} {}", "input:".dimmed(), input);
         }
 
-        // Show output or failure details
         match step {
-            StepState::Completed { output: Some(output), .. } => {
+            Step::Sync(SyncStep::Completed { output: Some(output), .. })
+            | Step::Async(AsyncStep::Completed { output: Some(output), .. }) => {
                 println!("      {} {}", "output:".dimmed(), output.green());
             }
-            StepState::Failed { failure: Some(failure), .. } => {
+            Step::Sync(SyncStep::Failed { failure: Some(failure), .. })
+            | Step::Async(AsyncStep::Failed { failure: Some(failure), .. }) => {
                 println!("      {} {}", "failure:".dimmed(), failure.red());
             }
-            StepState::Error { failure: Some(failure), .. } => {
+            Step::Sync(SyncStep::Error { failure: Some(failure), .. })
+            | Step::Async(AsyncStep::Error { failure: Some(failure), .. }) => {
                 println!("      {} {}", "error:".dimmed(), failure.yellow());
             }
             _ => {}

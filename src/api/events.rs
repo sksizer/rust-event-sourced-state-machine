@@ -1,10 +1,10 @@
-use crate::api::steps::{StepId, StepKind};
-
+use crate::api::steps::StepId;
 
 // An event indicates when something HAS happened — and should result in some state change
 #[derive(Clone)]
 pub enum StepEvent {
-    Add(StepId, StepKind),
+    AddSync(StepId, String),
+    AddAsync(StepId, String),
     Start(StepId),
     Complete(StepId, Option<String>),
     Failed(StepId, Option<String>),
