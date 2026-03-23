@@ -1,7 +1,16 @@
 //! This is a test step module that basically just passes the input through to output
-use crate::api::steps::SyncStepHandler;
+use serde_json::Value;
+use crate::api::steps::{SyncStepHandler, StepConfig, StepInput};
 
 static NAME: &str = "echo";
+
+fn validate_config(_: Option<Value>) -> Result<(), String> { Ok(()) }
+fn validate_input(_: Option<Value>) -> Result<(), String> { Ok(()) }
+
+fn echo_handler(_config: StepConfig, input: StepInput) -> Result<Value, Vec<String>> {
+    println!("Echo Module - input: {:?}", input.0);
+    Ok(input.0.unwrap_or(Value::Null))
+}
 
 // TODO - implement actual echoing for testing
 pub fn get_echo_module() -> SyncStepHandler {
@@ -9,10 +18,9 @@ pub fn get_echo_module() -> SyncStepHandler {
         name: "Synchronous Echo Step".to_string(),
         id: NAME.to_string(),
         description: "Passes input to output synchronously".to_string(),
-        handler: |input| {
-            println!("Echo Module - input: {:?}", input);
-            input
-        }
+        validate_config: Some(validate_config),
+        validate_input: Some(validate_input),
+        handler: echo_handler,
     }
 }
 
@@ -24,14 +32,15 @@ mod tests {
     #[test]
     fn passes_input_through_to_output() {
         let module = get_echo_module();
-        let input = Some(json!({ "message": "hello" }));
-        let output = (module.handler)(input.clone());
-        assert_eq!(output, input);
+        let input = json!({ "message": "hello" });
+        let output = (module.handler)(StepConfig(None), StepInput(Some(input.clone())));
+        assert_eq!(output.unwrap(), input);
     }
 
     #[test]
-    fn none_input_returns_none() {
+    fn none_input_returns_null() {
         let module = get_echo_module();
-        assert_eq!((module.handler)(None), None);
+        let output = (module.handler)(StepConfig(None), StepInput(None));
+        assert_eq!(output.unwrap(), Value::Null);
     }
 }

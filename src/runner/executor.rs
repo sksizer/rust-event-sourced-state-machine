@@ -1,5 +1,5 @@
 use log::{error, trace};
-use crate::api::steps::{StepEvent, SyncStep};
+use crate::api::steps::{StepEvent, SyncStep, StepConfig, StepInput};
 use crate::api::steps::Step;
 use crate::runner::registry::Registry;
 
@@ -15,8 +15,10 @@ pub fn executor(registry: &Registry, step: &Step) -> StepEvent {
                     match registry.get_sync_module(&core.kind) {
                         Some(step_module) => {
                             let input = s.core().input.clone();
-                            let result = (step_module.handler)(input);
-                            StepEvent::Complete(id, result)
+                            match (step_module.handler)(StepConfig(None), StepInput(input)) {
+                                Ok(value) => StepEvent::Complete(id, Some(value)),
+                                Err(errors) => StepEvent::Error(id, Some(errors.join("; "))),
+                            }
                         }
                         None => return StepEvent::Error(id, Some(format!("No step handler registered for: {}", core.kind ))),
                     }
