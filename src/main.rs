@@ -6,7 +6,6 @@ mod steps;
 mod view;
 mod runner;
 mod fixtures;
-mod persistence;
 mod api;
 mod r#impl;
 

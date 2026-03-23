@@ -13,7 +13,6 @@ pub enum StepEvent {
 
 pub type EventStream = Vec<StepEvent>;
 
-
 /// Interface to an event source
 pub trait EventSource {
     fn get_events_for(&self, id: &str) -> EventStream;
