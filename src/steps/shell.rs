@@ -1,3 +1,4 @@
+use log::trace;
 use serde_json::Value;
 use serde::Deserialize;
 use crate::api::steps::{SyncStepHandler, StepConfig, StepInput, StepError};
@@ -28,10 +29,11 @@ fn shell_handler(config: StepConfig, input: StepInput) -> Result<Value, Vec<Stri
     let config = get_config(config.0.unwrap()).unwrap();
     let mut results : Vec<String> = vec![];
     config.commands.iter().for_each(|command| {
-        println!("Executing command: {}", command);
-        let _output = std::process::Command::new(command).output();
-        println!("Command executed {}", String::from_utf8_lossy(&_output.unwrap().stdout));
-        results.push(command.to_string());
+        trace!("Executing command: {}", command);
+        let output = std::process::Command::new(command).output().unwrap().stdout;
+        let std_out = String::from_utf8_lossy(&output);
+        trace!("Std Out: {}", std_out);
+        results.push(std_out.to_string());
     });
     Ok(Value::Array(results.into_iter().map(|s| Value::String(s)).collect()))
 }
