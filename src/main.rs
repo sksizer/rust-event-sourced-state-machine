@@ -43,6 +43,7 @@ fn main() {
     view::summarize::execution_state(&execution_state);
 
     example_one();
+    example_two();
 }
 
 fn example_one() {
@@ -51,10 +52,6 @@ fn example_one() {
         StepEvent::add_sync("0", "fixed_output", Some(json!({ "config": "DATA" }))),
         StepEvent::add_sync("1", "echo", None),
         StepEvent::add_sync("2", "echo", None),
-        StepEvent::add_sync("3", "echo", None),
-        StepEvent::add_sync("4", "echo", None),
-        StepEvent::add_sync("5", "echo", None),
-        StepEvent::add_sync("6", "echo", None),
     ];
 
     let controller = Controller::new(
@@ -62,4 +59,17 @@ fn example_one() {
         Some(event_stream));
     let execution_state = controller.start();
     view::summarize::execution_state(&execution_state);
+}
+
+fn example_two() {
+    trace!("Example 2");
+    let event_stream: EventStream = vec![
+        StepEvent::add_sync("0", "shell", Some(json!({ "commands" : ["ls"]}))),
+        StepEvent::add_sync("1", "echo", None),
+    ];
+    let controller = Controller::new(
+        get_registry(),
+        Some(event_stream));
+    let execution_state = controller.start();
+    view::summarize::execution_state(&execution_state);   
 }

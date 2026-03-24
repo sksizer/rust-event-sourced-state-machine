@@ -1,15 +1,39 @@
 use serde_json::Value;
-use crate::api::steps::{SyncStepHandler, StepConfig, StepInput};
+use serde::Deserialize;
+use crate::api::steps::{SyncStepHandler, StepConfig, StepInput, StepError};
 
 static NAME: &str = "shell";
 
-fn validate_config(_: Option<Value>) -> Result<(), String> { Ok(()) }
+fn validate_config(config: Option<Value>) -> Result<(), StepError> {
+    match config {
+        None => Err(StepError::InvalidConfig("config is required".to_string())),
+        Some(value) => get_config(value)
+            .map(|_| ())
+            .map_err(|e| StepError::InvalidConfig(e.to_string())),
+    }
+}
+
+fn get_config(value: Value) -> Result<Config, serde_json::Error> {
+    serde_json::from_value(value)
+}
+
 fn validate_input(_: Option<Value>) -> Result<(), String> { Ok(()) }
 
-fn shell_handler(_config: StepConfig, input: StepInput) -> Result<Value, Vec<String>> {
-    let _output = std::process::Command::new("ls").output();
-    println!("Shell Module - input: {:?}", input.0);
-    Ok(Value::Null)
+#[derive(Deserialize)]
+struct Config {
+    commands: Vec<String>,
+}
+
+fn shell_handler(config: StepConfig, input: StepInput) -> Result<Value, Vec<String>> {
+    let config = get_config(config.0.unwrap()).unwrap();
+    let mut results : Vec<String> = vec![];
+    config.commands.iter().for_each(|command| {
+        println!("Executing command: {}", command);
+        let _output = std::process::Command::new(command).output();
+        println!("Command executed {}", String::from_utf8_lossy(&_output.unwrap().stdout));
+        results.push(command.to_string());
+    });
+    Ok(Value::Array(results.into_iter().map(|s| Value::String(s)).collect()))
 }
 
 pub fn get_shell_module() -> SyncStepHandler {
