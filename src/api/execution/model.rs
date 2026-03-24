@@ -1,23 +1,42 @@
 use thiserror::Error;
 use crate::api::steps::Step;
-use crate::r#impl::execution_state;
+use crate::runner::get_execution_status;
 
-pub struct ExecutionState {
+pub trait ExecutionState {
+    fn new() -> Self;
+    fn status(&self) -> ExecutionStatus;
+    fn is_stopped(&self) -> bool;
+
+    fn get_step_state(&self, id: &str) -> Option<&Step>;
+}
+
+pub struct DefaultExecutionState {
     // todo - make this private to enforce valid transitions
     pub step_states: Vec<Step>,
 }
 
-impl ExecutionState {
-    pub fn new() -> ExecutionState {
-        ExecutionState { step_states: vec![] }
+impl ExecutionState for DefaultExecutionState {
+    fn new() -> DefaultExecutionState {
+        DefaultExecutionState { step_states: vec![] }
     }
-    pub fn status(&self) -> ExecutionStatus {
-        execution_state::get_execution_status(self)
+    fn status(&self) -> ExecutionStatus {
+        get_execution_status(self)
+    }
+
+    fn is_stopped(&self) -> bool {
+        matches!(self.status(), ExecutionStatus::Error | ExecutionStatus::Failed | ExecutionStatus::Finished)
+    }
+
+    fn get_step_state(&self, id: &str) -> Option<&Step> {
+        self.step_states.iter().find(|s| s.id() == id)
     }
 }
 
 #[derive(Error, Debug)]
 pub enum ExecutionStateError {
+    #[error("Attempt to step transition on closed execution state")]
+    TransitionOnClosedExecutionState,
+
     #[error("A step with a duplicate id was appended")]
     DuplicateStepIdError,
 

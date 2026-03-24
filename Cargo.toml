@@ -5,8 +5,8 @@ edition = "2024"
 default-run = "rust-event-sourced-state-machine"
 
 [dependencies]
-serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
-log = "0.4.29"
 colored = "3"
 serde_json = "1.0.149"
+log = "0.4.29"
+pretty_env_logger = "0.5.0"

@@ -1,3 +1,4 @@
+//! Solely responsible for calling a step function
 use log::{error, trace};
 use crate::api::steps::{StepEvent, SyncStep, StepConfig, StepInput};
 use crate::api::steps::Step;
@@ -39,4 +40,12 @@ pub fn executor(registry: &Registry, step: &Step) -> StepEvent {
 fn invariant_violation(id: &str, message: &str) -> StepEvent {
     error!("Executor invariant violation {} {}", id, message);
     StepEvent::Error(id.to_string(), Some(message.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_executor() {
+    }
 }

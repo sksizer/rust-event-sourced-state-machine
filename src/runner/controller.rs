@@ -1,7 +1,10 @@
 //! Stateful object that ties together processing loop with functions
 
+use std::thread::sleep;
+use log::trace;
 use crate::api::events::EventStream;
-use crate::runner::{reduce, restore};
+use crate::api::execution::{DefaultExecutionState, ExecutionState};
+use crate::runner::{executor, reduce, restore, scheduler};
 use crate::runner::registry::Registry;
 pub struct Controller {
     registry: Registry,
@@ -16,17 +19,20 @@ impl Controller {
         }
     }
 
-    pub fn start(&self) {
+    pub fn start(&self) -> DefaultExecutionState {
         // Step 1. Restore Execution State
         // - reduces an up-to-date execution state from the event stream
-        let execution_state = restore(&self.event_stream);
+        let mut execution_state = restore(&self.event_stream);
 
-
-        // Step 2. Kick off ongoing processing (perhaps an event?)
-        // - receive an event
-        // - persist the state
-        // - process the event - get new execution state
-        // - receive or emit events from processing and new state
+        // Step 2. Kick off processing from current state;
+        while !execution_state.is_stopped() {
+            trace!("Controller - processing");
+            // sleep(std::time::Duration::from_millis(1000))
+            let next_step = scheduler(&execution_state);
+            let event = executor(&self.registry, next_step.unwrap());
+            execution_state = reduce(execution_state, &event);
+        }
+        execution_state
     }
 }
 

@@ -1,13 +1,23 @@
+mod add_step;
+mod get_execution_status;
+mod complete_step;
+mod update_step;
+
 use crate::api::steps::{AsyncStep, StepCore, StepEvent, SyncStep};
 use crate::api::steps::Step;
-use crate::r#impl::execution_state;
-use crate::api::execution::ExecutionState;
+use crate::api::execution::{DefaultExecutionState, ExecutionState};
+
+use add_step::append_step_state;
+use update_step::update;
+pub use get_execution_status::get_execution_status;
+
+
 
 /// Takes prior state + an event and returns an updated state
-pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> ExecutionState {
+pub fn reduce(execution_state: DefaultExecutionState, step_event: &StepEvent) -> DefaultExecutionState {
     match step_event {
         StepEvent::AddSync(id, kind, _input) => {
-            execution_state::append_step_state(
+            append_step_state(
                 execution_state,
                 Step::Sync(SyncStep::Ready(StepCore {
                     id: id.clone(),
@@ -19,7 +29,7 @@ pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> Execut
             .unwrap()
         }
         StepEvent::AddAsync(id, kind, _input ) => {
-            execution_state::append_step_state(
+            append_step_state(
                 execution_state,
                 Step::Async(AsyncStep::Ready(StepCore {
                     id: id.clone(),
@@ -34,7 +44,7 @@ pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> Execut
             let core = get_step_core(&execution_state, id);
             let is_async = matches!(execution_state.step_states.last().unwrap(), Step::Async(_));
             if is_async {
-                execution_state::update_step_state(
+                update(
                     execution_state,
                     Step::Async(AsyncStep::Running(core)),
                 )
@@ -45,30 +55,40 @@ pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> Execut
         }
         StepEvent::Complete(id, output) => {
             let core = get_step_core(&execution_state, id);
-            let is_async = matches!(execution_state.step_states.last().unwrap(), Step::Async(_));
-            if is_async {
-                execution_state::update_step_state(
-                    execution_state,
-                    Step::Async(AsyncStep::Completed { core, output: output.clone() }),
-                )
-            } else {
-                execution_state::update_step_state(
-                    execution_state,
-                    Step::Sync(SyncStep::Completed { core, output: output.clone() }),
-                )
+            let step = execution_state.get_step_state(id);
+            match step {
+                Some(step) => {
+                    let is_async = matches!(step, Step::Async(_));
+                    if is_async {
+                        update(
+                            execution_state,
+                            Step::Async(AsyncStep::Completed { core, output: output.clone() }),
+                        )
+                    } else {
+                        update(
+                            execution_state,
+                            Step::Sync(SyncStep::Completed { core, output: output.clone() }),
+                        )
+                    }
+                        .unwrap()
+                }
+                None => {
+                    panic!("Step not found in execution state");
+                }
             }
-            .unwrap()
+
+
         }
         StepEvent::Failed(id, failure) => {
             let core = get_step_core(&execution_state, id);
             let is_async = matches!(execution_state.step_states.last().unwrap(), Step::Async(_));
             if is_async {
-                execution_state::update_step_state(
+                update(
                     execution_state,
                     Step::Async(AsyncStep::Failed { core, failure: failure.clone() }),
                 )
             } else {
-                execution_state::update_step_state(
+                update(
                     execution_state,
                     Step::Sync(SyncStep::Failed { core, failure: failure.clone() }),
                 )
@@ -79,12 +99,12 @@ pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> Execut
             let core = get_step_core(&execution_state, id);
             let is_async = matches!(execution_state.step_states.last().unwrap(), Step::Async(_));
             if is_async {
-                execution_state::update_step_state(
+                update(
                     execution_state,
                     Step::Async(AsyncStep::Error { core, failure: failure.clone() }),
                 )
             } else {
-                execution_state::update_step_state(
+                update(
                     execution_state,
                     Step::Sync(SyncStep::Error { core, failure: failure.clone() }),
                 )
@@ -95,9 +115,8 @@ pub fn reduce(execution_state: ExecutionState, step_event: &StepEvent) -> Execut
 }
 
 /// Extract the core from the current step being transitioned
-fn get_step_core(execution_state: &ExecutionState, id: &str) -> StepCore {
-    let last = execution_state.step_states.last()
-        .expect("Cannot transition step on empty execution state");
-    assert_eq!(last.id(), id, "Event id does not match current step id");
-    last.core().clone()
+fn get_step_core(execution_state: &DefaultExecutionState, id: &str) -> StepCore {
+    let step = execution_state.step_states.iter().find(|s| s.id() == id);
+    assert_eq!(step.unwrap().id(), id, "Event id does not match current step id");
+    step.unwrap().core().clone()
 }

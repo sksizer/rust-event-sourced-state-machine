@@ -1,11 +1,11 @@
 //! Creates a realized execution state from an event stream
 use crate::api::events::EventStream;
-use crate::api::execution::ExecutionState;
+use crate::api::execution::DefaultExecutionState;
 use crate::runner::reduce::reduce;
 
 /// helper function to return a single execution state over a series of events
-pub fn restore(event_stream: &EventStream) -> ExecutionState {
-    let execution_state = ExecutionState {
+pub fn restore(event_stream: &EventStream) -> DefaultExecutionState {
+    let execution_state = DefaultExecutionState {
         step_states: Vec::new(),
     };
     event_stream.iter().fold(execution_state, reduce)
@@ -16,7 +16,7 @@ mod test {
     use super::*;
     use crate::api::steps::{AsyncStep, StepEvent, SyncStep};
     use crate::api::steps::Step;
-    use crate::api::execution::ExecutionStatus;
+    use crate::api::execution::{ExecutionState, ExecutionStatus};
 
     #[test]
     fn test_adding_a_single_step() {

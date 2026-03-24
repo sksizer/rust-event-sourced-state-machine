@@ -1,9 +1,11 @@
 use colored::Colorize;
-use crate::api::execution::{ExecutionState, ExecutionStatus};
+use crate::api::execution::{DefaultExecutionState, ExecutionState, ExecutionStatus};
 use crate::api::steps::{AsyncStep, Step, SyncStep};
 
+static REPEAT : usize = 80;
 
-pub fn execution_state(execution_state: &ExecutionState) {
+pub fn execution_state(execution_state: &DefaultExecutionState) {
+    println!("{}", "─".repeat(REPEAT));
     let status = execution_state.status();
     let status_text = format!("{:?}", status);
     let colored_status = match status {
@@ -15,7 +17,7 @@ pub fn execution_state(execution_state: &ExecutionState) {
     };
 
     println!("{} {}", "Execution Status:".bold(), colored_status.bold());
-    println!("{}", "─".repeat(40));
+    println!("{}", "─".repeat(REPEAT));
 
     if execution_state.step_states.is_empty() {
         println!("  {}", "(no steps)".dimmed());
@@ -56,4 +58,5 @@ pub fn execution_state(execution_state: &ExecutionState) {
             _ => {}
         }
     }
+    println!("{}", ".".repeat(REPEAT));
 }
