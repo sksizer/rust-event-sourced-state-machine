@@ -54,9 +54,10 @@ fn example_one() {
         StepEvent::add_sync("2", "echo", None),
     ];
 
-    let controller = Controller::new(
+    let mut controller = Controller::new(
         get_registry(),
-        Some(event_stream));
+        Some(event_stream),
+    );
     let execution_state = controller.start();
     view::summarize::execution_state(&execution_state);
 }
@@ -64,12 +65,26 @@ fn example_one() {
 fn example_two() {
     trace!("Example 2");
     let event_stream: EventStream = vec![
-        StepEvent::add_sync("0", "shell", Some(json!({ "commands" : ["ls"]}))),
-        StepEvent::add_sync("1", "echo", None),
+        StepEvent::add_sync("shell", "shell", Some(json!({ "commands" : ["ls"]}))),
+        StepEvent::add_sync("echo", "echo", None),
     ];
-    let controller = Controller::new(
+    let result_event_stream = event_stream.clone();
+    let mut controller = Controller::new(
         get_registry(),
-        Some(event_stream));
+        Some(event_stream),
+    );
+
+    controller.on_loop(|execution_state| {
+        view::summarize::execution_state(&execution_state);
+    });
+
+    let recorded_events = std::rc::Rc::new(std::cell::RefCell::new(result_event_stream));
+    let events_ref = recorded_events.clone();
+    controller.on_event(Box::new(move |event| {
+        events_ref.borrow_mut().push(event.clone());
+    }));
+
     let execution_state = controller.start();
-    view::summarize::execution_state(&execution_state);   
+    view::summarize::execution_state(&execution_state);
+    trace!("Recorded events: {:?}", recorded_events.borrow());
 }

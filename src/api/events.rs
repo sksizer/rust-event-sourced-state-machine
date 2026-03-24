@@ -9,6 +9,7 @@ pub trait EventSource {
     fn save_step_event(&mut self, event: StepEvent);
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
