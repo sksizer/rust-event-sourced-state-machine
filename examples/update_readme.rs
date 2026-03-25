@@ -6,18 +6,22 @@ use log::trace;
 use serde_json::json;
 use std::cell::RefCell;
 use std::rc::Rc;
+use evented_worker::steps::shell::{get_step, StepParameters};
+use serde_command::ShellCommand;
 
-pub fn update_readme() {
+fn main() {
     trace!("Example 3: Update Readme");
     let event_log = Rc::new(RefCell::new(vec![
-        StepEvent::add_sync(
-            "0",
-            "shell",
-            Some(
-                json!({ "commands": ["pnpm dlx @anthropic-ai/claude-code -p \"Please update a good README.md for this project\""] }),
-            ),
-        ),
-        StepEvent::add_sync("1", "echo", None),
+        get_step("0", StepParameters {
+            commands: vec![
+                ShellCommand::new("pnpm").args(vec![
+                    "dlx",
+                    "@anthropic-ai/claude-code",
+                    "-p",
+                    "Please create a suitable README for this project",
+                ])
+            ]
+        })
     ]));
     let mut controller = Controller::new(get_registry(), event_log.clone());
     let execution_state = controller.start();

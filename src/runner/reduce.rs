@@ -18,6 +18,8 @@ pub fn reduce(
 ) -> DefaultExecutionState {
     match step_event {
         StepEvent::AddSync(payload) => {
+            // TODO - this probably doesn't make sense to just transition a step from New to Ready in the reducer for no other reason than being in the new state
+            // READY should probably mean that all the data is present for a step - which in many cases is going to mean that it's dependencies and prior steps are also ready and have data prepped
             append_step_state(
                 execution_state,
                 Step::Sync(SyncStep::Ready {
