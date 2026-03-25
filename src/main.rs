@@ -3,8 +3,10 @@ use evented_worker::api::events::EventStream;
 use evented_worker::api::steps::StepEvent;
 use evented_worker::fixtures::{get_registry, get_test_step_modules};
 use evented_worker::runner::{Controller, Registry, resolve_prior_output};
+use evented_worker::steps::shell::{StepParameters, get_step};
 use evented_worker::{runner, view};
 use log::trace;
+use serde_command::ShellCommand;
 use serde_json::json;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -63,7 +65,12 @@ fn example_one() {
 fn example_two() {
     trace!("Example 2");
     let event_log = Rc::new(RefCell::new(vec![
-        StepEvent::add_sync("shell", "shell", Some(json!({ "commands" : ["ls"]}))),
+        get_step(
+            "0",
+            StepParameters {
+                commands: vec![ShellCommand::new("ls")],
+            },
+        ),
         StepEvent::add_sync("echo", "echo", None),
     ]));
 
