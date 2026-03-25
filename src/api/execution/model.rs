@@ -1,6 +1,6 @@
-use thiserror::Error;
 use crate::api::steps::Step;
 use crate::runner::get_execution_status;
+use thiserror::Error;
 
 pub trait ExecutionState {
     fn new() -> Self;
@@ -17,14 +17,19 @@ pub struct DefaultExecutionState {
 
 impl ExecutionState for DefaultExecutionState {
     fn new() -> DefaultExecutionState {
-        DefaultExecutionState { step_states: vec![] }
+        DefaultExecutionState {
+            step_states: vec![],
+        }
     }
     fn status(&self) -> ExecutionStatus {
         get_execution_status(self)
     }
 
     fn is_stopped(&self) -> bool {
-        matches!(self.status(), ExecutionStatus::Error | ExecutionStatus::Failed | ExecutionStatus::Finished)
+        matches!(
+            self.status(),
+            ExecutionStatus::Error | ExecutionStatus::Failed | ExecutionStatus::Finished
+        )
     }
 
     fn get_step_state(&self, id: &str) -> Option<&Step> {

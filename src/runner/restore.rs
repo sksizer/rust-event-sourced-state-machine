@@ -14,15 +14,13 @@ pub fn restore(event_stream: &EventStream) -> DefaultExecutionState {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::api::steps::{AsyncStep, StepEvent, SyncStep};
-    use crate::api::steps::Step;
     use crate::api::execution::{ExecutionState, ExecutionStatus};
+    use crate::api::steps::Step;
+    use crate::api::steps::{AsyncStep, StepEvent, SyncStep};
 
     #[test]
     fn test_adding_a_single_step() {
-        let event_stream = vec![
-            StepEvent::add_sync("1", "alpha", None),
-        ];
+        let event_stream = vec![StepEvent::add_sync("1", "alpha", None)];
         let execution_state = restore(&event_stream);
         assert_eq!(execution_state.step_states.len(), 1);
         assert_eq!(execution_state.step_states[0].id(), "1");
@@ -48,7 +46,10 @@ mod test {
         ];
         let execution_state = restore(&event_stream);
         assert_eq!(execution_state.step_states.len(), 1);
-        assert!(matches!(execution_state.step_states[0], Step::Sync(SyncStep::Completed { .. })));
+        assert!(matches!(
+            execution_state.step_states[0],
+            Step::Sync(SyncStep::Completed { .. })
+        ));
         assert_eq!(execution_state.step_states[0].id(), "1");
     }
 
@@ -64,8 +65,14 @@ mod test {
         ];
         let execution_state = restore(&event_stream);
         assert_eq!(execution_state.step_states.len(), 2);
-        assert!(matches!(execution_state.step_states[0], Step::Sync(SyncStep::Completed { .. })));
-        assert!(matches!(execution_state.step_states[1], Step::Sync(SyncStep::Completed { .. })));
+        assert!(matches!(
+            execution_state.step_states[0],
+            Step::Sync(SyncStep::Completed { .. })
+        ));
+        assert!(matches!(
+            execution_state.step_states[1],
+            Step::Sync(SyncStep::Completed { .. })
+        ));
     }
 
     #[test]
@@ -83,9 +90,18 @@ mod test {
         ];
         let execution_state = restore(&event_stream);
         assert_eq!(execution_state.step_states.len(), 3);
-        assert!(matches!(execution_state.step_states[0], Step::Sync(SyncStep::Completed { .. })));
-        assert!(matches!(execution_state.step_states[1], Step::Sync(SyncStep::Completed { .. })));
-        assert!(matches!(execution_state.step_states[2], Step::Sync(SyncStep::Failed { .. })));
+        assert!(matches!(
+            execution_state.step_states[0],
+            Step::Sync(SyncStep::Completed { .. })
+        ));
+        assert!(matches!(
+            execution_state.step_states[1],
+            Step::Sync(SyncStep::Completed { .. })
+        ));
+        assert!(matches!(
+            execution_state.step_states[2],
+            Step::Sync(SyncStep::Failed { .. })
+        ));
 
         assert_eq!(execution_state.status(), ExecutionStatus::Failed);
     }
@@ -98,6 +114,9 @@ mod test {
         ];
         let execution_state = restore(&event_stream);
         assert_eq!(execution_state.step_states.len(), 1);
-        assert!(matches!(execution_state.step_states[0], Step::Async(AsyncStep::Running { .. })));
+        assert!(matches!(
+            execution_state.step_states[0],
+            Step::Async(AsyncStep::Running { .. })
+        ));
     }
 }

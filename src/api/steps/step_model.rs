@@ -1,5 +1,5 @@
-use serde_json::Value;
 use crate::api::steps::StepCore;
+use serde_json::Value;
 
 #[derive(Clone, Debug)]
 pub enum Step {
@@ -36,8 +36,14 @@ impl Step {
 
     pub fn is_closed(&self) -> bool {
         match self {
-            Step::Sync(s) => matches!(s, SyncStep::Completed { .. } | SyncStep::Failed { .. } | SyncStep::Error { .. }),
-            Step::Async(a) => matches!(a, AsyncStep::Completed { .. } | AsyncStep::Failed { .. } | AsyncStep::Error { .. }),
+            Step::Sync(s) => matches!(
+                s,
+                SyncStep::Completed { .. } | SyncStep::Failed { .. } | SyncStep::Error { .. }
+            ),
+            Step::Async(a) => matches!(
+                a,
+                AsyncStep::Completed { .. } | AsyncStep::Failed { .. } | AsyncStep::Error { .. }
+            ),
         }
     }
 
@@ -49,25 +55,48 @@ impl Step {
     }
 
     pub fn is_completed(&self) -> bool {
-        matches!(self, Step::Sync(SyncStep::Completed { .. }) | Step::Async(AsyncStep::Completed { .. }))
+        matches!(
+            self,
+            Step::Sync(SyncStep::Completed { .. }) | Step::Async(AsyncStep::Completed { .. })
+        )
     }
 
     pub fn is_failed(&self) -> bool {
-        matches!(self, Step::Sync(SyncStep::Failed { .. }) | Step::Async(AsyncStep::Failed { .. }))
+        matches!(
+            self,
+            Step::Sync(SyncStep::Failed { .. }) | Step::Async(AsyncStep::Failed { .. })
+        )
     }
 
     pub fn is_error(&self) -> bool {
-        matches!(self, Step::Sync(SyncStep::Error { .. }) | Step::Async(AsyncStep::Error { .. }))
+        matches!(
+            self,
+            Step::Sync(SyncStep::Error { .. }) | Step::Async(AsyncStep::Error { .. })
+        )
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub enum SyncStep {
-    Ready { core: StepCore, input: Option<Value> },
-    Completed { core: StepCore, input: Option<Value>, output: Option<Value> },
-    Failed { core: StepCore, input: Option<Value>, failure: Option<String> },
-    Error { core: StepCore, input: Option<Value>, failure: Option<String> },
+    Ready {
+        core: StepCore,
+        input: Option<Value>,
+    },
+    Completed {
+        core: StepCore,
+        input: Option<Value>,
+        output: Option<Value>,
+    },
+    Failed {
+        core: StepCore,
+        input: Option<Value>,
+        failure: Option<String>,
+    },
+    Error {
+        core: StepCore,
+        input: Option<Value>,
+        failure: Option<String>,
+    },
 }
 
 impl SyncStep {
@@ -93,10 +122,25 @@ impl SyncStep {
 #[derive(Clone, Debug)]
 pub enum AsyncStep {
     Ready(StepCore),
-    Running { core: StepCore, input: Option<Value> },
-    Completed { core: StepCore, input: Option<Value>, output: Option<Value> },
-    Failed { core: StepCore, input: Option<Value>, failure: Option<String> },
-    Error { core: StepCore, input: Option<Value>, failure: Option<String> },
+    Running {
+        core: StepCore,
+        input: Option<Value>,
+    },
+    Completed {
+        core: StepCore,
+        input: Option<Value>,
+        output: Option<Value>,
+    },
+    Failed {
+        core: StepCore,
+        input: Option<Value>,
+        failure: Option<String>,
+    },
+    Error {
+        core: StepCore,
+        input: Option<Value>,
+        failure: Option<String>,
+    },
 }
 
 impl AsyncStep {

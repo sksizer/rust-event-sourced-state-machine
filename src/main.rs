@@ -1,23 +1,29 @@
-use std::rc::Rc;
-use std::cell::RefCell;
-use log::trace;
-use serde_json::json;
+mod examples;
 use evented_worker::api::events::EventStream;
 use evented_worker::api::steps::StepEvent;
 use evented_worker::fixtures::{get_registry, get_test_step_modules};
-use evented_worker::runner::{resolve_prior_output, Controller, Registry};
+use evented_worker::runner::{Controller, Registry, resolve_prior_output};
 use evented_worker::{runner, view};
+use log::trace;
+use serde_json::json;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 fn main() {
     pretty_env_logger::init();
     let registry = Registry::new(Some(get_test_step_modules()), None);
-    let event_stream: EventStream = vec![
-        StepEvent::add_sync("1", "echo", Some(json!({ "config": "echo" }))),
-    ];
+    let event_stream: EventStream = vec![StepEvent::add_sync(
+        "1",
+        "echo",
+        Some(json!({ "config": "echo" })),
+    )];
     let mut execution_state = runner::restore(&event_stream);
     view::summarize::execution_state(&execution_state);
 
-    let step_id = runner::scheduler(&execution_state).unwrap().id().to_string();
+    let step_id = runner::scheduler(&execution_state)
+        .unwrap()
+        .id()
+        .to_string();
     let input = resolve_prior_output(&execution_state, &step_id);
     execution_state = runner::reduce(execution_state, &StepEvent::start(step_id, input));
     let next_step = runner::scheduler(&execution_state).unwrap();
@@ -26,7 +32,10 @@ fn main() {
     view::summarize::execution_state(&execution_state);
 
     execution_state = runner::reduce(execution_state, &StepEvent::add_sync("2", "echo", None));
-    let step_id = runner::scheduler(&execution_state).unwrap().id().to_string();
+    let step_id = runner::scheduler(&execution_state)
+        .unwrap()
+        .id()
+        .to_string();
     let input = resolve_prior_output(&execution_state, &step_id);
     execution_state = runner::reduce(execution_state, &StepEvent::start(step_id, input));
     let next_step = runner::scheduler(&execution_state).unwrap();

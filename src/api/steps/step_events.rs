@@ -1,5 +1,5 @@
-use serde_json::Value;
 use crate::api::steps::{StepId, StepKind};
+use serde_json::Value;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AddStepPayload {
@@ -33,11 +33,23 @@ pub enum StepEvent {
 
 impl StepEvent {
     pub fn add_sync(id: impl Into<String>, kind: impl Into<String>, config: Option<Value>) -> Self {
-        StepEvent::AddSync(AddStepPayload { id: id.into(), kind: kind.into(), config })
+        StepEvent::AddSync(AddStepPayload {
+            id: id.into(),
+            kind: kind.into(),
+            config,
+        })
     }
 
-    pub fn add_async(id: impl Into<String>, kind: impl Into<String>, config: Option<Value>) -> Self {
-        StepEvent::AddAsync(AddStepPayload { id: id.into(), kind: kind.into(), config })
+    pub fn add_async(
+        id: impl Into<String>,
+        kind: impl Into<String>,
+        config: Option<Value>,
+    ) -> Self {
+        StepEvent::AddAsync(AddStepPayload {
+            id: id.into(),
+            kind: kind.into(),
+            config,
+        })
     }
 
     pub fn start(id: impl Into<String>, input: Option<Value>) -> Self {
@@ -45,27 +57,36 @@ impl StepEvent {
     }
 
     pub fn complete(id: impl Into<String>, output: Option<Value>) -> Self {
-        StepEvent::Complete(CompletePayload { id: id.into(), output })
+        StepEvent::Complete(CompletePayload {
+            id: id.into(),
+            output,
+        })
     }
 
     pub fn failed(id: impl Into<String>, reason: Option<String>) -> Self {
-        StepEvent::Failed(FailurePayload { id: id.into(), reason })
+        StepEvent::Failed(FailurePayload {
+            id: id.into(),
+            reason,
+        })
     }
 
     pub fn error(id: impl Into<String>, reason: Option<String>) -> Self {
-        StepEvent::Error(FailurePayload { id: id.into(), reason })
+        StepEvent::Error(FailurePayload {
+            id: id.into(),
+            reason,
+        })
     }
 }
 
 impl StepEvent {
     pub fn step_id(&self) -> &StepId {
         match self {
-            StepEvent::AddSync(p)  => &p.id,
+            StepEvent::AddSync(p) => &p.id,
             StepEvent::AddAsync(p) => &p.id,
             StepEvent::Start(id, _) => id,
             StepEvent::Complete(p) => &p.id,
-            StepEvent::Failed(p)   => &p.id,
-            StepEvent::Error(p)    => &p.id,
+            StepEvent::Failed(p) => &p.id,
+            StepEvent::Error(p) => &p.id,
         }
     }
 }

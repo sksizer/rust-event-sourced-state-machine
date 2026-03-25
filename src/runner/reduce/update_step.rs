@@ -1,6 +1,6 @@
-use log::error;
 use crate::api::execution::{DefaultExecutionState, ExecutionState, ExecutionStateError};
 use crate::api::steps::{Step, SyncStep};
+use log::error;
 
 pub(super) fn update(
     mut execution_state: DefaultExecutionState,
@@ -15,9 +15,13 @@ pub(super) fn update(
         return Err(ExecutionStateError::TransitionOnClosedExecutionState);
     }
 
-    match execution_state.step_states.iter_mut().find(|s| s.id() == step.id()) {
+    match execution_state
+        .step_states
+        .iter_mut()
+        .find(|s| s.id() == step.id())
+    {
         Some(existing) => {
-            *existing = step;  // replace in place
+            *existing = step; // replace in place
             Ok(execution_state)
         }
         None => {
@@ -29,21 +33,32 @@ pub(super) fn update(
 
 #[cfg(test)]
 mod tests {
-    use crate::api::steps::StepCore;
     use super::*;
+    use crate::api::steps::StepCore;
 
     fn sync_core(id: &str) -> StepCore {
-        StepCore { id: id.to_string(), kind: "alpha".to_string(), config: None }
+        StepCore {
+            id: id.to_string(),
+            kind: "alpha".to_string(),
+            config: None,
+        }
     }
     #[test]
     fn updating_finished_step_error() {
         let execution_state = DefaultExecutionState {
-            step_states: vec![Step::Sync(SyncStep::Completed { core: sync_core("1"), input: None, output: None })],
+            step_states: vec![Step::Sync(SyncStep::Completed {
+                core: sync_core("1"),
+                input: None,
+                output: None,
+            })],
         };
 
         let result = update(
             execution_state,
-            Step::Sync(SyncStep::Ready { core: sync_core("1"), input: None }),
+            Step::Sync(SyncStep::Ready {
+                core: sync_core("1"),
+                input: None,
+            }),
         );
         assert!(result.is_err());
     }

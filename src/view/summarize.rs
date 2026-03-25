@@ -1,8 +1,8 @@
-use colored::Colorize;
 use crate::api::execution::{DefaultExecutionState, ExecutionState, ExecutionStatus};
 use crate::api::steps::{AsyncStep, Step, SyncStep};
+use colored::Colorize;
 
-static REPEAT : usize = 80;
+static REPEAT: usize = 80;
 
 pub fn execution_state(execution_state: &DefaultExecutionState) {
     println!("{}", "─".repeat(REPEAT));
@@ -36,7 +36,14 @@ pub fn execution_state(execution_state: &DefaultExecutionState) {
             Step::Async(AsyncStep::Failed { .. }) => ("✘".red(), "Failed".red()),
             Step::Async(AsyncStep::Error { .. }) => ("⚠".yellow(), "Error".yellow()),
         };
-        println!("  {} Step {} [{}] ({}): {}", icon, i + 1, step.id().dimmed(), step.kind().dimmed(), status_label);
+        println!(
+            "  {} Step {} [{}] ({}): {}",
+            icon,
+            i + 1,
+            step.id().dimmed(),
+            step.kind().dimmed(),
+            status_label
+        );
 
         if let Some(config) = step.config() {
             println!("      {} {}", "config:".dimmed(), config);
@@ -46,16 +53,40 @@ pub fn execution_state(execution_state: &DefaultExecutionState) {
         }
 
         match step {
-            Step::Sync(SyncStep::Completed { output: Some(output), .. })
-            | Step::Async(AsyncStep::Completed { output: Some(output), .. }) => {
-                println!("      {} {}", "output:".dimmed(), serde_json::to_string_pretty(output).unwrap_or_default().green());
+            Step::Sync(SyncStep::Completed {
+                output: Some(output),
+                ..
+            })
+            | Step::Async(AsyncStep::Completed {
+                output: Some(output),
+                ..
+            }) => {
+                println!(
+                    "      {} {}",
+                    "output:".dimmed(),
+                    serde_json::to_string_pretty(output)
+                        .unwrap_or_default()
+                        .green()
+                );
             }
-            Step::Sync(SyncStep::Failed { failure: Some(failure), .. })
-            | Step::Async(AsyncStep::Failed { failure: Some(failure), .. }) => {
+            Step::Sync(SyncStep::Failed {
+                failure: Some(failure),
+                ..
+            })
+            | Step::Async(AsyncStep::Failed {
+                failure: Some(failure),
+                ..
+            }) => {
                 println!("      {} {}", "failure:".dimmed(), failure.red());
             }
-            Step::Sync(SyncStep::Error { failure: Some(failure), .. })
-            | Step::Async(AsyncStep::Error { failure: Some(failure), .. }) => {
+            Step::Sync(SyncStep::Error {
+                failure: Some(failure),
+                ..
+            })
+            | Step::Async(AsyncStep::Error {
+                failure: Some(failure),
+                ..
+            }) => {
                 println!("      {} {}", "error:".dimmed(), failure.yellow());
             }
             _ => {}

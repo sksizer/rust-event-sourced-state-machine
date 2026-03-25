@@ -1,6 +1,6 @@
-use std::pin::Pin;
-use serde_json::Value;
 use super::errors::StepError;
+use serde_json::Value;
+use std::pin::Pin;
 
 pub struct StepConfig(pub Option<Value>);
 pub struct StepInput(pub Option<Value>);
@@ -19,7 +19,11 @@ pub struct SyncStepHandler {
     pub handler: SyncHandler,
 }
 
-type AsyncHandler = fn(StepConfig, StepInput) -> Pin<Box<dyn std::future::Future<Output = Result<Value, Vec<String>>> + Send>>;
+type AsyncHandler =
+    fn(
+        StepConfig,
+        StepInput,
+    ) -> Pin<Box<dyn std::future::Future<Output = Result<Value, Vec<String>>> + Send>>;
 
 pub struct AsyncStepHandler {
     pub name: String,

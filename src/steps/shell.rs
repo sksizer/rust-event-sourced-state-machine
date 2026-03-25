@@ -1,7 +1,7 @@
+use crate::api::steps::{StepConfig, StepError, StepInput, SyncStepHandler};
 use log::trace;
-use serde_json::Value;
 use serde::Deserialize;
-use crate::api::steps::{SyncStepHandler, StepConfig, StepInput, StepError};
+use serde_json::Value;
 
 static NAME: &str = "shell";
 
@@ -18,7 +18,9 @@ fn get_config(value: Value) -> Result<Config, serde_json::Error> {
     serde_json::from_value(value)
 }
 
-fn validate_input(_: Option<Value>) -> Result<(), String> { Ok(()) }
+fn validate_input(_: Option<Value>) -> Result<(), String> {
+    Ok(())
+}
 
 #[derive(Deserialize)]
 struct Config {
@@ -27,7 +29,7 @@ struct Config {
 
 fn shell_handler(config: StepConfig, input: StepInput) -> Result<Value, Vec<String>> {
     let config = get_config(config.0.unwrap()).unwrap();
-    let mut results : Vec<String> = vec![];
+    let mut results: Vec<String> = vec![];
     config.commands.iter().for_each(|command| {
         trace!("Executing command: {}", command);
         let output = std::process::Command::new(command).output().unwrap().stdout;
@@ -35,7 +37,9 @@ fn shell_handler(config: StepConfig, input: StepInput) -> Result<Value, Vec<Stri
         trace!("Std Out: {}", std_out);
         results.push(std_out.to_string());
     });
-    Ok(Value::Array(results.into_iter().map(|s| Value::String(s)).collect()))
+    Ok(Value::Array(
+        results.into_iter().map(|s| Value::String(s)).collect(),
+    ))
 }
 
 pub fn get_shell_module() -> SyncStepHandler {

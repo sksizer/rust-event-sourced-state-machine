@@ -1,15 +1,15 @@
-mod scheduler;
-mod restore;
-mod reduce;
-mod executor;
-mod registry;
 mod controller;
+mod executor;
+mod reduce;
+mod registry;
+mod restore;
+mod scheduler;
 
-pub use reduce::get_execution_status;
-pub use executor::executor;
-pub use scheduler::scheduler;
-pub use reduce::reduce;
-pub use restore::restore;
-pub use registry::Registry;
 pub use controller::Controller;
 pub use controller::resolve_prior_output;
+pub use executor::executor;
+pub use reduce::get_execution_status;
+pub use reduce::reduce;
+pub use registry::Registry;
+pub use restore::restore;
+pub use scheduler::scheduler;

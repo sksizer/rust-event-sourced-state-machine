@@ -2,16 +2,16 @@
 
 mod get_prior_output;
 
-use std::rc::Rc;
-use std::cell::RefCell;
-use log::trace;
 use crate::api::events::EventStream;
 use crate::api::execution::{DefaultExecutionState, ExecutionState};
-use crate::api::steps::StepEvent;
 use crate::api::steps::Step;
-use crate::runner::{executor, reduce, restore, scheduler};
+use crate::api::steps::StepEvent;
 use crate::runner::registry::Registry;
+use crate::runner::{executor, reduce, restore, scheduler};
 pub use get_prior_output::resolve_prior_output;
+use log::trace;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub struct Controller {
     registry: Registry,
@@ -72,18 +72,20 @@ type EventHandlerFn = Box<dyn FnMut(&StepEvent)>;
 
 #[cfg(test)]
 mod test {
-    use serde_json::json;
-    use std::rc::Rc;
-    use std::cell::RefCell;
+    use super::*;
     use crate::api::steps::StepEvent;
     use crate::runner::registry::Registry;
-    use super::*;
+    use serde_json::json;
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
     #[test]
     fn test_controller_start() {
-        let event_log = Rc::new(RefCell::new(vec![
-            StepEvent::add_sync("1", "echo", Some(json!({ "message": "hello" }))),
-        ]));
+        let event_log = Rc::new(RefCell::new(vec![StepEvent::add_sync(
+            "1",
+            "echo",
+            Some(json!({ "message": "hello" })),
+        )]));
         let mut controller = Controller::new(Registry::new(None, None), event_log);
         controller.start();
     }

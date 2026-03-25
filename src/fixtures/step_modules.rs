@@ -2,17 +2,13 @@ use crate::api::steps::SyncStepHandler;
 use crate::steps::{get_echo_module, get_fixed_output, get_shell_module};
 
 pub fn get_test_step_modules() -> Vec<SyncStepHandler> {
-    vec![
-        get_shell_module(),
-        get_echo_module(),
-        get_fixed_output()
-    ]
+    vec![get_shell_module(), get_echo_module(), get_fixed_output()]
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::runner::Registry;
     use super::*;
+    use crate::runner::Registry;
 
     #[test]
     fn test_get_test_step_modules() {

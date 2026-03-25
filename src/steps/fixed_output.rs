@@ -1,13 +1,17 @@
 //! This is a test step module that basically just passes the input through to output
 
+use crate::api::steps::{StepConfig, StepError, StepInput, SyncStepHandler};
 use log::trace;
 use serde_json::Value;
-use crate::api::steps::{SyncStepHandler, StepConfig, StepInput, StepError};
 
 static NAME: &str = "fixed_output";
 
-fn validate_config(_: Option<Value>) -> Result<(), StepError> { Ok(()) }
-fn validate_input(_: Option<Value>) -> Result<(), String> { Ok(()) }
+fn validate_config(_: Option<Value>) -> Result<(), StepError> {
+    Ok(())
+}
+fn validate_input(_: Option<Value>) -> Result<(), String> {
+    Ok(())
+}
 
 fn fixed_output_handler(config: StepConfig, input: StepInput) -> Result<Value, Vec<String>> {
     trace!("Fixed Output - config: {:?}", config.0);

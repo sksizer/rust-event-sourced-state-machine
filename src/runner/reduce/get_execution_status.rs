@@ -16,7 +16,6 @@ pub fn get_execution_status(execution_state: &DefaultExecutionState) -> Executio
     ExecutionStatus::Running
 }
 
-
 #[cfg(test)]
 mod test {
     use crate::api::execution::{DefaultExecutionState, ExecutionState, ExecutionStatus};

@@ -1,13 +1,17 @@
 //! This is a test step module that basically just passes the input through to output
 
+use crate::api::steps::{StepConfig, StepError, StepInput, SyncStepHandler};
 use log::trace;
 use serde_json::Value;
-use crate::api::steps::{SyncStepHandler, StepConfig, StepInput, StepError};
 
 static NAME: &str = "echo";
 
-fn validate_config(_: Option<Value>) -> Result<(), StepError> { Ok(()) }
-fn validate_input(_: Option<Value>) -> Result<(), String> { Ok(()) }
+fn validate_config(_: Option<Value>) -> Result<(), StepError> {
+    Ok(())
+}
+fn validate_input(_: Option<Value>) -> Result<(), String> {
+    Ok(())
+}
 
 fn echo_handler(_config: StepConfig, input: StepInput) -> Result<Value, Vec<String>> {
     trace!("Echo Module - input: {:?}", input.0);

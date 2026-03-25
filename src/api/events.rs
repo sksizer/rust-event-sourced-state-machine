@@ -3,7 +3,6 @@ use crate::api::steps::StepEvent;
 
 pub type EventStream = Vec<StepEvent>;
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
