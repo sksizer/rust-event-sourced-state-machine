@@ -1,4 +1,4 @@
-use crate::api::steps::{StepConfig, StepError, StepEvent, StepInput, SyncStepHandler};
+use crate::api::steps::{StepConfig, StepError, Event, StepInput, SyncStepHandler};
 use log::trace;
 use serde::Deserialize;
 use serde_command::ShellCommand;
@@ -61,8 +61,8 @@ pub struct StepParameters {
     pub commands: Vec<ShellCommand>,
 }
 
-pub fn get_step(id: &str, step_parameters: StepParameters) -> StepEvent {
-    StepEvent::add_sync(
+pub fn get_step(id: &str, step_parameters: StepParameters) -> Event {
+    Event::add_sync(
         id,
         NAME,
         Some(json!({ "commands": step_parameters.commands })),

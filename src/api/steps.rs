@@ -6,7 +6,9 @@ mod step_model;
 
 pub use core::{StepCore, StepId, StepKind};
 pub use errors::StepError;
-pub use step_events::{StepEvent, SystemErrorData, CompletePayload};
+pub use step_events::{
+    CompletePayload, Event, FailurePayload, StepEvent, SystemErrorData, SystemEvent,
+};
 pub use step_handlers::{
     AsyncStepHandler, StepConfig, StepInput, SyncStepHandler, ValidateConfig, ValidateInput,
 };

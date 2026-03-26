@@ -4,12 +4,10 @@ mod get_prior_output;
 
 use crate::api::events::EventStream;
 use crate::api::execution::{DefaultExecutionState, ExecutionState};
-use crate::api::steps::Step;
-use crate::api::steps::StepEvent;
+use crate::api::steps::Event;
 use crate::runner::registry::Registry;
-use crate::runner::{process, processor, reduce, restore, scheduler};
+use crate::runner::{process, reduce, restore, scheduler};
 pub use get_prior_output::resolve_prior_output;
-use log::trace;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -33,25 +31,26 @@ impl Controller {
     pub fn start(&mut self) -> DefaultExecutionState {
         let mut execution_state = restore(&self.event_log.borrow());
         loop {
-            let Some(event) = scheduler(&execution_state) else { break };
-            self.event_log.borrow_mut().push(event.clone());
-            execution_state = reduce(execution_state, &event);
+            let Some(step_event) = scheduler(&execution_state) else { break };
+            let start_event = Event::from(step_event.clone());
+            self.event_log.borrow_mut().push(start_event.clone());
+            execution_state = reduce(execution_state, &start_event);
 
-            let event = process(&execution_state, &self.registry, &event);
-            self.event_log.borrow_mut().push(event.clone());
-            execution_state = reduce(execution_state, &event);
+            let result_event = process(&execution_state, &self.registry, &step_event);
+            self.event_log.borrow_mut().push(result_event.clone());
+            execution_state = reduce(execution_state, &result_event);
         }
         execution_state
     }
 }
 
 type LoopFn = fn(&DefaultExecutionState);
-type EventHandlerFn = Box<dyn FnMut(&StepEvent)>;
+type EventHandlerFn = Box<dyn FnMut(&Event)>;
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::api::steps::StepEvent;
+    use crate::api::steps::Event;
     use crate::runner::registry::Registry;
     use serde_json::json;
     use std::cell::RefCell;
@@ -59,7 +58,7 @@ mod test {
 
     #[test]
     fn test_controller_start() {
-        let event_log = Rc::new(RefCell::new(vec![StepEvent::add_sync(
+        let event_log = Rc::new(RefCell::new(vec![Event::add_sync(
             "1",
             "echo",
             Some(json!({ "message": "hello" })),

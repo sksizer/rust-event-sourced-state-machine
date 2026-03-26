@@ -4,7 +4,7 @@ mod update_step;
 
 use crate::api::execution::{DefaultExecutionState, ExecutionState};
 use crate::api::steps::{
-    AsyncStep, AsyncReady, Step, StepCore, StepEvent, SyncNew, SyncStep,
+    AsyncStep, AsyncReady, Event, Step, StepCore, StepEvent, SyncNew, SyncStep,
 };
 
 use add_step::append_step_state;
@@ -13,6 +13,19 @@ use update_step::update;
 
 /// Takes prior state + an event and returns an updated state
 pub fn reduce(
+    execution_state: DefaultExecutionState,
+    event: &Event,
+) -> DefaultExecutionState {
+    match event {
+        Event::Step(step_event) => reduce_step(execution_state, step_event),
+        Event::System(_) => {
+            // TODO - consider how system events affect execution state
+            execution_state
+        }
+    }
+}
+
+fn reduce_step(
     execution_state: DefaultExecutionState,
     step_event: &StepEvent,
 ) -> DefaultExecutionState {
@@ -84,10 +97,6 @@ pub fn reduce(
                 _ => panic!("Invalid step state for Error event: {}", payload.id),
             };
             update(execution_state, new_step).unwrap()
-        }
-        StepEvent::SystemError(payload) => {
-            // TODO - consider this system error whether it even makes sense to have it
-            execution_state
         }
     }
 }
