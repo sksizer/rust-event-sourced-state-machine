@@ -5,10 +5,10 @@ An event-sourced workflow engine for Rust. Define workflows as sequences of name
 ## Concepts
 
 - **Step** — a unit of work with a `kind` (handler name), optional config, and optional input/output
-- **StepEvent** — an immutable record of something that happened (step added, started, completed, failed)
+- **StepEvent** — an immutable record of something that happened (step added, started, completed, failed, errored)
 - **EventStream** — the ordered log of all events; the authoritative source of truth for execution state
 - **Registry** — a catalog of named step handlers available at runtime
-- **Controller** — orchestrates the execution loop: restores state, schedules steps, executes them, records results
+- **Controller** — orchestrates the execution loop: restores state, schedules the next event, processes it, and records results
 
 State is never stored directly. It is always derived by replaying the event stream through the `reduce` function.
 
@@ -49,44 +49,30 @@ let mut controller = Controller::new(get_registry(), event_log);
 let state = controller.start();
 ```
 
-Hook into the loop for observability:
-
-```rust
-// Called every iteration with current execution state
-controller.on_loop(|state| {
-    evented_worker::view::summarize::execution_state(&state);
-});
-
-// Called each time a new StepEvent is produced
-controller.on_event(|event| {
-    println!("event: {:?}", event);
-});
-```
-
 ### Low-level API
 
-Use `scheduler`, `executor`, and `reduce` directly for full control:
+Use `scheduler`, `process`, and `reduce` directly for full control:
 
 ```rust
 use evented_worker::{runner, view};
 use evented_worker::api::steps::StepEvent;
 use evented_worker::runner::Registry;
-use evented_worker::fixtures::{get_registry, get_test_step_modules};
+use evented_worker::fixtures::get_registry;
 use serde_json::json;
 
-let registry = Registry::new(Some(get_test_step_modules()), None);
+let registry = get_registry();
 let event_stream = vec![
     StepEvent::add_sync("1", "echo", Some(json!({ "config": "hello" }))),
 ];
 
 let mut state = runner::restore(&event_stream);
 
-let step_id = runner::scheduler(&state).unwrap().id().to_string();
-let input = runner::resolve_prior_output(&state, &step_id);
-state = runner::reduce(state, &StepEvent::start(step_id, input));
+// scheduler picks the next runnable step and returns a Start event
+let start_event = runner::scheduler(&state).unwrap();
+state = runner::reduce(state, &start_event);
 
-let next_step = runner::scheduler(&state).unwrap();
-let result_event = runner::executor(&registry, next_step);
+// process executes the handler and returns a result event (Complete, Failed, or Error)
+let result_event = runner::process(&state, &registry, &start_event);
 state = runner::reduce(state, &result_event);
 
 view::summarize::execution_state(&state);
@@ -94,7 +80,7 @@ view::summarize::execution_state(&state);
 
 ### Chaining steps
 
-Steps pass output to the next step automatically. The `Controller` uses `resolve_prior_output` to wire outputs as inputs:
+Steps pass output to the next step automatically. Use `resolve_prior_output` to wire the output of one step as input to the next:
 
 ```rust
 let event_log = Rc::new(RefCell::new(vec![
@@ -112,12 +98,23 @@ The execution loop follows this pattern each iteration:
 EventStream (Vec<StepEvent>)
     ↓ restore()
 DefaultExecutionState
-    ↓ scheduler()     → pick next runnable step
-    ↓ reduce()        → emit Start event
-    ↓ executor()      → call handler → produce result StepEvent
+    ↓ scheduler()     → pick next runnable step, return Start event
+    ↓ reduce()        → apply Start event to state
+    ↓ process()       → call handler → produce result StepEvent
     ↓ reduce()        → apply result to state
-    [repeat until Finished or Failed]
+    [repeat until no runnable steps remain]
 ```
+
+### Event types
+
+| Event | Meaning |
+|-------|---------|
+| `AddSync` / `AddAsync` | A step was added to the workflow |
+| `Start` | A step began executing |
+| `Complete` | A step finished successfully (may carry output) |
+| `Failed` | A step failed (may carry a reason) |
+| `Error` | A step encountered an error (may carry a reason) |
+| `SystemError` | An infrastructure-level error occurred |
 
 Recovery works by replaying the event stream from the beginning. If a process crashes mid-execution, replaying the existing events restores exact state — already-completed steps are not re-executed.
 
@@ -138,7 +135,7 @@ let cmd = ShellCommand::new("cargo")
 let mut process_cmd: std::process::Command = cmd.into();
 ```
 
-Enable the `tokio` feature for async support:
+Enable the `tokio` feature for async execution via `tokio::process::Command`:
 
 ```toml
 [dependencies]
@@ -149,9 +146,9 @@ serde-command = { path = "crates/serde-command", features = ["tokio"] }
 
 | Kind | Description |
 |------|-------------|
-| `shell` | Executes one or more `ShellCommand`s sequentially |
+| `shell` | Executes one or more `ShellCommand`s sequentially, returning their stdout |
 | `echo` | Passes input through unchanged (useful for testing/chaining) |
-| `fixed_output` | Always emits a configured value as output |
+| `fixed_output` | Always emits the configured value as output, ignoring input |
 
 ## Writing a Custom Step Handler
 
@@ -188,7 +185,7 @@ Early-stage library. The core event-sourcing loop, synchronous step execution, a
 
 Known limitations:
 - **Events not persisted**: the controller holds state in memory only — a crash loses all progress
-- **Async step execution**: registered but hits `unimplemented!()` at runtime
-- **Validators ignored**: `validate_config`/`validate_input` on handlers are never called by the executor
+- **Async step execution**: event types and state machine exist but processing is not yet implemented
+- **Validators ignored**: `validate_config`/`validate_input` on handlers are defined but never called
 - **Sequential scheduling only**: no DAG-based dependency model; steps run left-to-right
 - **No retry or compensation API**: failure is terminal (though the event log structure supports replay-based recovery)
