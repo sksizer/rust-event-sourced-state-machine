@@ -1,8 +1,8 @@
 use crate::api::events::Event;
 use crate::api::steps::{StepConfig, StepError, StepInput, SyncStepHandler};
+use cmd_spec::ShellCommand;
 use log::trace;
 use serde::Deserialize;
-use cmd_spec::ShellCommand;
 use serde_json::{Value, json};
 
 static NAME: &str = "shell";

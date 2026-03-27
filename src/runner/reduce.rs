@@ -4,19 +4,14 @@ mod update_step;
 
 use crate::api::events::Event;
 use crate::api::execution::{DefaultExecutionState, ExecutionState};
-use crate::api::steps::{
-    AsyncStep, AsyncReady, Step, StepCore, StepEvent, SyncNew, SyncStep,
-};
+use crate::api::steps::{AsyncReady, AsyncStep, Step, StepCore, StepEvent, SyncNew, SyncStep};
 
 use add_step::append_step_state;
 pub use get_execution_status::get_execution_status;
 use update_step::update;
 
 /// Takes prior state + an event and returns an updated state
-pub fn reduce(
-    execution_state: DefaultExecutionState,
-    event: &Event,
-) -> DefaultExecutionState {
+pub fn reduce(execution_state: DefaultExecutionState, event: &Event) -> DefaultExecutionState {
     match event {
         Event::Step(step_event) => reduce_step(execution_state, step_event),
         Event::System(_) => {
@@ -63,12 +58,12 @@ fn reduce_step(
         }
         StepEvent::Complete(payload) => {
             let new_step = match execution_state.get_step_state(&payload.id) {
-                Some(Step::Sync(SyncStep::Running(running))) => {
-                    Step::from(SyncStep::from(running.clone().complete(payload.output.clone())))
-                }
-                Some(Step::Async(AsyncStep::Running(running))) => {
-                    Step::from(AsyncStep::from(running.clone().complete(payload.output.clone())))
-                }
+                Some(Step::Sync(SyncStep::Running(running))) => Step::from(SyncStep::from(
+                    running.clone().complete(payload.output.clone()),
+                )),
+                Some(Step::Async(AsyncStep::Running(running))) => Step::from(AsyncStep::from(
+                    running.clone().complete(payload.output.clone()),
+                )),
                 _ => panic!("Invalid step state for Complete event: {}", payload.id),
             };
             update(execution_state, new_step).unwrap()

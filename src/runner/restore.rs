@@ -14,8 +14,8 @@ pub fn restore(event_stream: &EventStream) -> DefaultExecutionState {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::api::execution::{ExecutionState, ExecutionStatus};
     use crate::api::events::Event;
+    use crate::api::execution::{ExecutionState, ExecutionStatus};
     use crate::api::steps::{AsyncStep, Step, SyncStep};
 
     #[test]
@@ -108,10 +108,7 @@ mod test {
 
     #[test]
     fn async_step_start_running() {
-        let event_stream = vec![
-            Event::add_async("1", "fetch", None),
-            Event::start("1"),
-        ];
+        let event_stream = vec![Event::add_async("1", "fetch", None), Event::start("1")];
         let execution_state = restore(&event_stream);
         assert_eq!(execution_state.step_states.len(), 1);
         assert!(matches!(

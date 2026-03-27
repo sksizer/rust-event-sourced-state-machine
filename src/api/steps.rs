@@ -11,7 +11,7 @@ pub use handlers::{
     AsyncStepHandler, StepConfig, StepInput, SyncStepHandler, ValidateConfig, ValidateInput,
 };
 pub use model::{
-    AsyncStep, AsyncCompleted, AsyncError, AsyncFailed, AsyncReady, AsyncRunning,
-    CompletedStep, Failure, FailedStep, RanStep, Step, StepState,
-    SyncCompleted, SyncError, SyncFailed, SyncNew, SyncReady, SyncRunning, SyncStep,
+    AsyncCompleted, AsyncError, AsyncFailed, AsyncReady, AsyncRunning, AsyncStep, CompletedStep,
+    FailedStep, Failure, RanStep, Step, StepState, SyncCompleted, SyncError, SyncFailed, SyncNew,
+    SyncReady, SyncRunning, SyncStep,
 };

@@ -1,9 +1,9 @@
+use cmd_spec::ShellCommand;
 use evented_worker::api::events::EventStream;
 use evented_worker::fixtures::get_registry;
 use evented_worker::runner::Controller;
 use evented_worker::steps::shell::{StepParameters, get_step};
 use evented_worker::view::summarize;
-use cmd_spec::ShellCommand;
 use std::cell::RefCell;
 use std::rc::Rc;
 

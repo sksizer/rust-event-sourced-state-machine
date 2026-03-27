@@ -30,7 +30,11 @@ impl Event {
         Event::Step(StepEvent::add_sync(id, kind, config))
     }
 
-    pub fn add_async(id: impl Into<String>, kind: impl Into<String>, config: Option<Value>) -> Self {
+    pub fn add_async(
+        id: impl Into<String>,
+        kind: impl Into<String>,
+        config: Option<Value>,
+    ) -> Self {
         Event::Step(StepEvent::add_async(id, kind, config))
     }
 
@@ -56,11 +60,15 @@ impl Event {
 }
 
 impl From<StepEvent> for Event {
-    fn from(e: StepEvent) -> Self { Event::Step(e) }
+    fn from(e: StepEvent) -> Self {
+        Event::Step(e)
+    }
 }
 
 impl From<SystemEvent> for Event {
-    fn from(e: SystemEvent) -> Self { Event::System(e) }
+    fn from(e: SystemEvent) -> Self {
+        Event::System(e)
+    }
 }
 
 pub type EventStream = Vec<Event>;

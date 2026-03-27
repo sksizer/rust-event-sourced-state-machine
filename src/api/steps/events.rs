@@ -43,7 +43,11 @@ impl StepEvent {
         })
     }
 
-    pub fn add_async(id: impl Into<String>, kind: impl Into<String>, config: Option<Value>) -> Self {
+    pub fn add_async(
+        id: impl Into<String>,
+        kind: impl Into<String>,
+        config: Option<Value>,
+    ) -> Self {
         StepEvent::AddAsync(AddStepPayload {
             id: id.into(),
             kind: kind.into(),

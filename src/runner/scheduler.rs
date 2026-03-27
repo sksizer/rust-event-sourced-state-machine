@@ -4,7 +4,10 @@ use crate::api::steps::StepEvent;
 /// Given an execution state (and later a system state) this determines what step to take and
 /// produces an event that can be persisted
 pub fn scheduler(execution_state: &DefaultExecutionState) -> Option<StepEvent> {
-    let next_step = execution_state.step_states.iter().find(|step| step.is_runnable());
+    let next_step = execution_state
+        .step_states
+        .iter()
+        .find(|step| step.is_runnable());
     match next_step {
         Some(step) => Some(StepEvent::start(step.id().to_string())),
         None => None,

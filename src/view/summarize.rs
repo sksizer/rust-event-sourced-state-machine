@@ -89,12 +89,20 @@ pub fn execution_state(execution_state: &DefaultExecutionState) {
             }
             Step::Sync(SyncStep::Error(se)) => {
                 if let Some(reasons) = &se.failed.failure {
-                    println!("      {} {}", "error:".dimmed(), reasons.join("; ").yellow());
+                    println!(
+                        "      {} {}",
+                        "error:".dimmed(),
+                        reasons.join("; ").yellow()
+                    );
                 }
             }
             Step::Async(AsyncStep::Error(ae)) => {
                 if let Some(reasons) = &ae.failed.failure {
-                    println!("      {} {}", "error:".dimmed(), reasons.join("; ").yellow());
+                    println!(
+                        "      {} {}",
+                        "error:".dimmed(),
+                        reasons.join("; ").yellow()
+                    );
                 }
             }
             _ => {}

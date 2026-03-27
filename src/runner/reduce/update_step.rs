@@ -34,7 +34,7 @@ pub(super) fn update(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api::steps::{StepCore, SyncCompleted, SyncNew, SyncStep, CompletedStep, RanStep};
+    use crate::api::steps::{CompletedStep, RanStep, StepCore, SyncCompleted, SyncNew, SyncStep};
     use chrono::Utc;
 
     fn sync_core(id: &str) -> StepCore {
@@ -49,7 +49,10 @@ mod tests {
         let completed = SyncCompleted {
             core: sync_core("1"),
             completed: CompletedStep {
-                ran: RanStep { started_at: Utc::now(), input: None },
+                ran: RanStep {
+                    started_at: Utc::now(),
+                    input: None,
+                },
                 output: None,
             },
         };
@@ -58,10 +61,7 @@ mod tests {
         };
 
         let ready = SyncNew::new(sync_core("1")).make_ready(None);
-        let result = update(
-            execution_state,
-            Step::from(SyncStep::from(ready)),
-        );
+        let result = update(execution_state, Step::from(SyncStep::from(ready)));
         assert!(result.is_err());
     }
 }

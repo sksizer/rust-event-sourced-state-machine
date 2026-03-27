@@ -43,10 +43,7 @@ mod tests {
         let execution_state = DefaultExecutionState {
             step_states: vec![make_ready_step("1", "alpha")],
         };
-        let result = append_step_state(
-            execution_state,
-            make_ready_step("1", "beta"),
-        );
+        let result = append_step_state(execution_state, make_ready_step("1", "beta"));
         assert!(result.is_err());
     }
 }
