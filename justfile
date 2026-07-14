@@ -77,22 +77,16 @@ install-tools:
 # ---------------------------------------------------------------------------- #
 #                                   RELEASE                                    #
 # ---------------------------------------------------------------------------- #
+# Releases are automated by release-plz in CI — merge the "chore: release" PR
+# it opens on main. See RELEASE.md. The recipes below are local previews only.
 
-# Generate changelog from conventional commits
+# Generate changelog from conventional commits (local preview; CI regenerates it)
 changelog:
     git-cliff --output CHANGELOG.md
 
 # Check for semver violations against the latest git tag
 semver-check:
     cargo semver-checks --baseline-rev "$(git describe --tags --abbrev=0)"
-
-# Dry-run a release (default: patch bump)
-release-dry-run level="patch":
-    cargo release {{level}} --no-confirm
-
-# Perform a release (patch, minor, or major)
-release level="patch":
-    cargo release {{level}} --execute
 
 # ---------------------------------------------------------------------------- #
 #                               QUALITY CHECK                                  #
@@ -158,6 +152,30 @@ alias tb := template-backport
 template-backport-all *args:
     bash scripts/template_backport_all.sh {{args}}
 alias tba := template-backport-all
+
+# ---------------------------------------------------------------------------- #
+#                                   COUSINS                                    #
+# ---------------------------------------------------------------------------- #
+
+# Review one cousin repo (by name from scripts/cousins.json) for template-sourced improvements (dry-run by default; --execute to run)
+cousin-review *args:
+    bash scripts/cousin_review.sh {{args}}
+alias cr := cousin-review
+
+# Review every cousin in scripts/cousins.json in parallel (dry-run by default; --execute to run)
+cousin-review-all *args:
+    bash scripts/cousin_review_all.sh {{args}}
+alias cra := cousin-review-all
+
+# Apply template-sourced changes to a cousin's opted-in paths and open a PR (dry-run by default; --execute to run)
+cousin-apply *args:
+    bash scripts/cousin_apply.sh {{args}}
+alias ca := cousin-apply
+
+# Apply changes to every cousin, one PR each (dry-run by default; --execute to run)
+cousin-apply-all *args:
+    bash scripts/cousin_apply_all.sh {{args}}
+alias caa := cousin-apply-all
 
 # ---------------------------------------------------------------------------- #
 #                              PROJECT-SPECIFIC                                #
